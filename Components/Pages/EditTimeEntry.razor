@@ -1,0 +1,83 @@
+﻿@page "/edit-time-entry"
+@page "/edit-time-entry/{id:int}"
+@inject ClientTimeEntryService clientTimeEntryService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@if(Id.HasValue)
+{
+    <h2>Editar entrada de tiempo</h2>
+}
+else{
+    <h2>Crear nueva entrada de tiempo</h2>
+}
+
+<EditForm Model="timeEntry" OnSubmit="HandleSubmit" FormName="editTimeEntry">
+    <label>Minutos</label>
+    <InputNumber @bind-Value="timeEntry.Minutes" class="form-control" />
+    <label>Categoría</label>
+    <InputSelect @bind-Value="timeEntry.Category" class="form-control">
+        @foreach (var category in Enum.GetValues(typeof(Category)).Cast<Category>())
+        {
+            <option value="@category">@category</option>
+        }
+    </InputSelect>
+        <button type="submit" class="btn btn-primary"> Crear </button>
+    
+    @if(Id != null)
+    {
+        <button @onclick="DeleteTimeEntry" type="button" class="btn btn-danger">Eliminar</button>
+    }
+</EditForm>
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    [SupplyParameterFromForm]
+    TimeEntry timeEntry { get; set; } = new TimeEntry{Minutes = 0, Category = 0, DateTime = DateTime.UtcNow };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            timeEntry = await clientTimeEntryService.GetTimeEntry(Id.Value);
+        }
+    }
+
+
+
+    async Task HandleSubmit()
+    {
+        try
+        {
+            if (Id.HasValue)
+            {
+                await clientTimeEntryService.EditTimeEntry(Id.Value, timeEntry);
+            }
+            else
+            {
+                await clientTimeEntryService.AddTimeEntry(timeEntry);
+            }
+            NavigationManager.NavigateTo("/list");
+        }
+        catch (HttpRequestException ex)
+        {
+            // Manejar el error de la solicitud
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+
+    async Task DeleteTimeEntry()
+    {
+        if(Id.HasValue)
+        {
+            bool isDeleted = await clientTimeEntryService.DeleteTimeEntry(timeEntry.Id);
+
+            if(isDeleted)
+            {
+                NavigationManager.NavigateTo("/list");
+            }
+        }
+    }
+
+}

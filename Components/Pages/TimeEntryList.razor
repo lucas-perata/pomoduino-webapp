@@ -1,0 +1,53 @@
+﻿@page "/list"
+@inject ITimeEntryService TimeEntryService 
+@inject ClientTimeEntryService ClientTimeEntryService 
+@rendermode InteractiveServer
+
+<PageTitle>Entradas de tiempo</PageTitle>
+<h3>Tiempo registrado para el @DateTime.UtcNow.Date</h3>
+
+@if(timeEntries == null)
+{
+    <span>Loading...</span>
+}
+else if(timeEntries.Count() == 0)
+{
+    <div>No hay ninguna entrada</div>
+}
+else
+{
+    <ul>
+        @foreach (TimeEntry timeEntry in timeEntries)
+        {
+            <li>@timeEntry.DateTime</li>
+            <li>@timeEntry.Category</li>
+            <li>@timeEntry.Minutes</li>
+            <li>@timeEntry.Id</li>
+            <div>
+                <button class="btn btn-danger" @onclick="() => DeleteTimeEntry(timeEntry.Id)">Eliminar</button>
+                <TimerApp.Components.Shared.EditTimeEntryButton Id="@timeEntry.Id"/>
+            </div>
+        }
+    </ul>
+}
+
+<TimerApp.Components.Shared.CreateTimeEntryButton/>
+
+@code {
+    List<TimeEntry>? timeEntries = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        timeEntries = await ClientTimeEntryService.GetDailyTimeEntries();
+    }
+
+    async Task DeleteTimeEntry(int id)
+    {
+            bool isDeleted = await ClientTimeEntryService.DeleteTimeEntry(id);
+
+            if (isDeleted)
+            {
+                timeEntries = await ClientTimeEntryService.GetDailyTimeEntries();
+            }
+    }
+}

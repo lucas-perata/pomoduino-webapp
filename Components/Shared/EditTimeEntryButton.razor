@@ -1,0 +1,15 @@
+﻿@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<button @onclick="CreateTimeEntry" class="btn btn-primary">Editar Time Entry</button>
+
+@code {
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    void CreateTimeEntry()
+    {
+        NavigationManager.NavigateTo($"/edit-time-entry/{Id}");
+    }
+}
