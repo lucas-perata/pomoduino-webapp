@@ -11,11 +11,11 @@
 
     public enum Category
     {
-        Study,// 0
-        Work, // 1
-        Programming, // 2
-        Exercise, // 3
-        Meditation, // 4
-        Reading // 5
+       Estudio,// 0
+       Trabajo, // 1
+       Programación, // 2
+       Ejercicio, // 3
+       Meditación, // 4
+       Lectura // 5
     }
 }

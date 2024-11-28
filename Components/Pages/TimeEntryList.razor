@@ -4,37 +4,49 @@
 @rendermode InteractiveServer
 
 <PageTitle>Entradas de tiempo</PageTitle>
-<h3>Tiempo registrado para el @DateTime.UtcNow.Date</h3>
 
-@if(timeEntries == null)
-{
-    <span>Loading...</span>
-}
-else if(timeEntries.Count() == 0)
-{
-    <div>No hay ninguna entrada</div>
-}
-else
-{
-    <ul>
-        @foreach (TimeEntry timeEntry in timeEntries)
-        {
-            <li>@timeEntry.DateTime</li>
-            <li>@timeEntry.Category</li>
-            <li>@timeEntry.Minutes</li>
-            <li>@timeEntry.Id</li>
-            <div>
-                <button class="btn btn-danger" @onclick="() => DeleteTimeEntry(timeEntry.Id)">Eliminar</button>
-                <TimerApp.Components.Shared.EditTimeEntryButton Id="@timeEntry.Id"/>
-            </div>
-        }
-    </ul>
-}
 
-<TimerApp.Components.Shared.CreateTimeEntryButton/>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h3 class="mb-4">Tiempo registrado para el @DateTime.UtcNow.Date</h3>
+            <h3>Tiempo total @DailyTime()</h3>
+
+            @if (timeEntries == null)
+            {
+                <span class="text-muted">Loading...</span>
+            }
+            else if (timeEntries.Count() == 0)
+            {
+                <div class="alert alert-warning">No hay ninguna entrada</div>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (TimeEntry timeEntry in timeEntries)
+                    {
+                        <li class="list-group-item">
+                            <div>
+                                <strong>@timeEntry.DateTime</strong><br>
+                                <span class="text-muted">Categoría: @timeEntry.Category</span><br>
+                                <span>Duración: @timeEntry.Minutes min</span><br>
+                                <span>ID: @timeEntry.Id</span>
+                            </div>
+                            <div class="mt-2">
+                                <button class="btn btn-danger" @onclick="() => DeleteTimeEntry(timeEntry.Id)">Eliminar</button>
+                                <TimerApp.Components.Shared.EditTimeEntryButton Id="@timeEntry.Id" />
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     List<TimeEntry>? timeEntries = null;
+    int contador = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,11 +55,25 @@ else
 
     async Task DeleteTimeEntry(int id)
     {
-            bool isDeleted = await ClientTimeEntryService.DeleteTimeEntry(id);
+        bool isDeleted = await ClientTimeEntryService.DeleteTimeEntry(id);
 
-            if (isDeleted)
+        if (isDeleted)
+        {
+            timeEntries = await ClientTimeEntryService.GetDailyTimeEntries();
+        }
+    }
+
+    private int DailyTime()
+    {
+        if(timeEntries != null)
+        {
+            foreach(TimeEntry t in timeEntries)
             {
-                timeEntries = await ClientTimeEntryService.GetDailyTimeEntries();
+                contador += t.Minutes; 
             }
+            return contador; 
+        }
+
+        return 0;
     }
 }

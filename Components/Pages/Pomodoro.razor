@@ -4,51 +4,72 @@
 @rendermode InteractiveServer
 @inject ClientTimeEntryService ClientTimeEntryService
 
-<h3>Pomodoro</h3>
-<div>
-    <h1>@formattedTime</h1>
-    <p>@(isFocusTime ? "Focus Time" : "Break Time")</p>
-</div>
-<div>
-    <button @onclick="() => StartPomodoro(25,5)">25/5</button>
-    <button @onclick="() => StartPomodoro(35, 10)">35/10</button>
-    <button @onclick="() => StartPomodoro(50, 10)">50/10</button>
-</div>
-<div>
-    <label for="category">Select Category:</label>
-    <select id="category" @bind="selectedCategory">
-        @foreach (var category in Enum.GetValues<Category>())
-        {
-            <option value="@category">@category</option>
-        }
-    </select>
-</div>
-<div>
-    <button @onclick="ToggleTimer">@(!isRunning ? "Start" : "Pause")</button>
-    <button @onclick="ResetTimer">Reset</button>
+<PageTitle>Pomodoro</PageTitle>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h3 class="mb-4">Pomodoro</h3>
+            <div class="mb-3">
+                <h3 class="display-1">@formattedTime</h3>
+                <p class="lead">@((isFocusTime ? "Focus Time" : "Break Time"))</p>
+            </div>
+
+            <div class="mb-4">
+                <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(1,1 )">25/5</button>
+                <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(35, 10)">35/10</button>
+                <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(50, 10)">50/10</button>
+            </div>
+
+            <div class="mb-4">
+                <label for="category" class="form-label">Seleccionar categoría:</label>
+                <select id="category" class="form-select" @bind="selectedCategory">
+                    @foreach (var category in Enum.GetValues<Category>())
+                    {
+                        <option value="@category">@category</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <button class="btn btn-success btn-lg mx-2" @onclick="ToggleTimer">@(!isRunning ? "Comenzar" : "Pausar")</button>
+                <button class="btn btn-danger btn-lg mx-2" @onclick="ResetTimer">Resetear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card visually-hidden">
+        <div class="card-header">
+            <button @onclick=@(()=>hidden=!hidden)>@(!hidden ? "Play" : "Stop")</button>
+
+        </div>
+        <div class="card-body visually-hidden">
+            @if (hidden)
+            {
+                <audio autoplay controls><source src="/alarm.mp3" /></audio>
+            }
+         </div>
+    </div>
 </div>
 
 @code {
     private Timer _timer;
-    private int remainingTime; // Remaining time in seconds
-    private int focusTime; // Focus time duration in minutes
-    private int breakTime; // Break time duration in minutes
-    private bool isFocusTime = true; // True if focus session, false for break
-    private bool isRunning = false; // Timer running state
+    private int remainingTime; 
+    private int focusTime; 
+    private int breakTime; 
+    private bool isFocusTime = true; 
+    private bool isRunning = false; 
     private string formattedTime => $"{remainingTime / 60:D2}:{remainingTime % 60:D2}";
-    private Category selectedCategory = Category.Study; // Default category
+    private Category selectedCategory = Category.Estudio; 
+    bool hidden = false; 
 
     private void StartPomodoro(int focusMinutes, int breakMinutes)
     {
-        // Stop and dispose of any existing timer
         _timer?.Stop();
         _timer?.Dispose();
 
-        // Set focus and break times
         focusTime = focusMinutes;
         breakTime = breakMinutes;
 
-        // Initialize with focus time
         isFocusTime = true;
         remainingTime = focusMinutes * 60;
         isRunning = false;
@@ -65,7 +86,6 @@
         }
         else
         {
-            // Create a new timer if not already running
             if (_timer == null)
             {
                 _timer = new Timer(1000); // Tick every second
@@ -83,7 +103,6 @@
         _timer?.Dispose();
         _timer = null;
 
-        // Reset to initial focus time
         if (focusTime > 0)
         {
             remainingTime = focusTime * 60;
@@ -105,6 +124,7 @@
             // Switch between focus and break time
             if (isFocusTime)
             {
+                hidden = true;
                 // End of focus time - add time entry
                 await AddTimeEntryToServer();
 
@@ -117,10 +137,10 @@
                 // End of break time - switch back to focus
                 isFocusTime = true;
                 remainingTime = focusTime * 60;
+                hidden = true; 
             }
         }
 
-        // Update UI safely from timer thread
         await InvokeAsync(StateHasChanged);
     }
 
@@ -128,7 +148,7 @@
     {
         var timeEntry = new TimeEntry
             {
-                Minutes = focusTime, // Use the full focus time duration
+                Minutes = focusTime, 
                 Category = selectedCategory,
                 DateTime = DateTime.UtcNow
             };
@@ -139,7 +159,6 @@
         }
         catch (Exception ex)
         {
-            // Optional: Add error handling or logging
             Console.WriteLine($"Failed to add time entry: {ex.Message}");
         }
     }
