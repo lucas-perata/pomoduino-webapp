@@ -15,7 +15,7 @@
             </div>
 
             <div class="mb-4">
-                <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(1,1 )">25/5</button>
+                <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(1,1)">25/5</button>
                 <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(35, 10)">35/10</button>
                 <button class="btn btn-primary btn-lg mx-2" @onclick="() => StartPomodoro(50, 10)">50/10</button>
             </div>
@@ -47,20 +47,23 @@
             {
                 <audio autoplay controls><source src="/alarm.mp3" /></audio>
             }
-         </div>
+        </div>
     </div>
 </div>
 
 @code {
     private Timer _timer;
-    private int remainingTime; 
-    private int focusTime; 
-    private int breakTime; 
-    private bool isFocusTime = true; 
-    private bool isRunning = false; 
+    private int remainingTime;
+    private int focusTime;
+    private int breakTime;
+    private bool isFocusTime = true;
+    private bool isBreakTime = false;
+    private bool isRunning = false;
     private string formattedTime => $"{remainingTime / 60:D2}:{remainingTime % 60:D2}";
-    private Category selectedCategory = Category.Estudio; 
-    bool hidden = false; 
+    private Category selectedCategory = Category.Estudio;
+    bool hidden = false;
+    private bool hasSentTimeEntry = false;
+    private bool isProcessing = false;
 
     private void StartPomodoro(int focusMinutes, int breakMinutes)
     {
@@ -73,6 +76,12 @@
         isFocusTime = true;
         remainingTime = focusMinutes * 60;
         isRunning = false;
+
+        if (_timer == null)
+        {
+            _timer = new Timer(1000);
+            _timer.Elapsed += OnTimerElapsed;
+        }
 
         StateHasChanged();
     }
@@ -88,7 +97,7 @@
         {
             if (_timer == null)
             {
-                _timer = new Timer(1000); // Tick every second
+                _timer = new Timer(1000);
                 _timer.Elapsed += OnTimerElapsed;
             }
 
@@ -118,49 +127,52 @@
         if (remainingTime > 0)
         {
             remainingTime--;
+            hidden = false; 
         }
         else
         {
-            // Switch between focus and break time
             if (isFocusTime)
             {
-                hidden = true;
-                // End of focus time - add time entry
-                await AddTimeEntryToServer();
+                if (!hasSentTimeEntry && !isProcessing)
+                {
+                    hidden = true; 
+                    isProcessing = true;
+                    var response = await AddTimeEntryToServer();
+                    if (response != null)
+                    {
+                        hasSentTimeEntry = true;
+                        remainingTime = breakTime * 60;
+                    }
 
-                // Switch to break time
+                    isProcessing = false;
+                }
+
                 isFocusTime = false;
-                remainingTime = breakTime * 60;
+                isBreakTime = true;
             }
-            else
+            else if (isBreakTime)
             {
-                // End of break time - switch back to focus
+                hidden = true; 
+                isBreakTime = false; 
                 isFocusTime = true;
                 remainingTime = focusTime * 60;
-                hidden = true; 
+                hasSentTimeEntry = false;
             }
         }
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task AddTimeEntryToServer()
+    private async Task<TimeEntry> AddTimeEntryToServer()
     {
         var timeEntry = new TimeEntry
             {
-                Minutes = focusTime, 
+                Minutes = focusTime,
                 Category = selectedCategory,
                 DateTime = DateTime.UtcNow
             };
 
-        try
-        {
-            var response = await ClientTimeEntryService.AddTimeEntry(timeEntry);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to add time entry: {ex.Message}");
-        }
+        return await ClientTimeEntryService.AddTimeEntry(timeEntry);
     }
 
     public void Dispose()

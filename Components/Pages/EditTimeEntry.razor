@@ -4,31 +4,56 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-@if(Id.HasValue)
-{
-    <h2>Editar entrada de tiempo</h2>
-}
-else{
-    <h2>Crear nueva entrada de tiempo</h2>
+@{
+    string pageTitle = Id.HasValue ? "Editar entrada de tiempo" : "Crear nueva entrada de tiempo";
 }
 
-<EditForm Model="timeEntry" OnSubmit="HandleSubmit" FormName="editTimeEntry">
-    <label>Minutos</label>
-    <InputNumber @bind-Value="timeEntry.Minutes" class="form-control" />
-    <label>Categoría</label>
-    <InputSelect @bind-Value="timeEntry.Category" class="form-control">
-        @foreach (var category in Enum.GetValues(typeof(Category)).Cast<Category>())
-        {
-            <option value="@category">@category</option>
-        }
-    </InputSelect>
-        <button type="submit" class="btn btn-primary"> Crear </button>
-    
-    @if(Id != null)
-    {
-        <button @onclick="DeleteTimeEntry" type="button" class="btn btn-danger">Eliminar</button>
-    }
-</EditForm>
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">@pageTitle</h2>
+
+    <EditForm Model="timeEntry" OnSubmit="HandleSubmit" FormName="editTimeEntry">
+        <div class="row">
+            <!-- Input para los minutos -->
+            <div class="col-md-6 mb-3">
+                <label for="minutes" class="form-label">Minutos</label>
+                <InputNumber id="minutes" @bind-Value="timeEntry.Minutes" class="form-control" placeholder="Ingrese los minutos" />
+            </div>
+
+            <!-- Input para la categoría -->
+            <div class="col-md-6 mb-3">
+                <label for="category" class="form-label">Categoría</label>
+                <InputSelect id="category" @bind-Value="timeEntry.Category" class="form-control">
+                    @foreach (var category in Enum.GetValues(typeof(Category)).Cast<Category>())
+                    {
+                        <option value="@category">@category</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <!-- Botón para crear o editar -->
+            <button type="submit" class="btn btn-primary mb-2">
+                @if (Id.HasValue)
+                {
+                    <span>Actualizar</span>
+                }
+                else
+                {
+                    <span>Crear</span>
+                }
+            </button>
+
+            @if (Id != null)
+            {
+                <!-- Botón para eliminar si estamos editando -->
+                <button @onclick="DeleteTimeEntry" type="button" class="btn btn-danger mb-2 ms-2">
+                    Eliminar
+                </button>
+            }
+        </div>
+    </EditForm>
+</div>
 @code {
     [Parameter]
     public int? Id { get; set; }
