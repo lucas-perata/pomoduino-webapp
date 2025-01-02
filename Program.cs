@@ -7,14 +7,28 @@ using Microsoft.Extensions.DependencyInjection; // Add this using directive
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(connectionString));
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddScoped<TimeEntryService>();
 builder.Services.AddScoped<ClientTimeEntryService>();    
@@ -26,9 +40,9 @@ builder.Services.AddHttpClient<ClientTimeEntryService>(client =>
     client.BaseAddress = new Uri("https://localhost:7241/"); // Cambia a tu URL base
 });
 
-builder.Services.AddHttpClient<ITimeEntryService, ClientTimeEntryService>(client =>
+builder.Services.AddHttpClient<ClientTimeEntryService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7241/"); // Cambia a tu URL base
+    client.BaseAddress = new Uri("http://localhost:7241/"); // Cambia a tu URL base
 });
 
 
@@ -47,9 +61,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+
+// app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+app.UseCors("AllowAllOrigins");
+
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()

@@ -5,7 +5,7 @@
         public int Id { get; set; }
         public required int Minutes { get; set; }
         public required Category Category { get; set; }
-        public required DateTime DateTime { get; set; } = DateTime.UtcNow;
+        public  DateTime DateTime { get; set; } = DateTime.UtcNow;
 
     }
 

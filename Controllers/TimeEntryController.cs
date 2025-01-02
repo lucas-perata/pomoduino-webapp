@@ -44,6 +44,7 @@ namespace TimerApp.Controllers
         {
             if (timeEntry is not null)
             {
+                timeEntry.DateTime = DateTime.UtcNow;
                 await _timeEntryService.AddTimeEntry(timeEntry);
                 return Ok(timeEntry);
             }
