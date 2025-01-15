@@ -1,4 +1,4 @@
-# 🚀 Pomoduino  
+![pomoduino-app](https://github.com/user-attachments/assets/121ca12f-968b-4d1b-896a-a97f730a59bd)# 🚀 Pomoduino  
 
 **Pomoduino** es un proyecto que desarrollé entre 2024 y 2025 combinando software, hardware y técnicas de programación baremetal. Durante mucho tiempo busqué un dispositivo que me ayudara a organizarme sin depender del celular, y así nació esta herramienta única diseñada para mejorar mi uso del tiempo.  
 
@@ -51,3 +51,7 @@ Pomoduino muestra cómo la tecnología puede facilitar la vida diaria y mejorar 
 - Programación en hardware (**Arduino**, **ESP-8266**).  
 - Diseño e **impresión 3D**.  
 - Gestión de bases de datos en **SQL** (local y en la nube).  
+
+![pomoduino-app](https://github.com/user-attachments/assets/15a40d90-ff10-44d1-9478-49450d0ab951)
+![Imagen de WhatsApp 2025-01-07 a las 09 28 24_ffc78a14](https://github.com/user-attachments/assets/11b51e5e-6b3b-41bb-974b-d673fdae98e2)
+
